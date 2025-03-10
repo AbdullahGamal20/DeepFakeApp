@@ -44,7 +44,7 @@ const Login = () => {
         if (response.data.success) {
           // Store userID in cookies
           Cookies.set("userID", response.data.userID, { expires: 7 }); // Expires in 7 days
-
+          Cookies.set("token", response.data.token, { expires: 7 });
           console.log("Login successful:", response.data);
 
           // Redirect to upload page
@@ -89,7 +89,7 @@ const Login = () => {
             </label>
             <input
               type="email"
-              className="w-full px-4 py-3 mt-2 rounded-lg bg-gray-900 text-white focus:ring-1 focus:ring-[#D4C0F9] outline-none transition"
+              className="w-full px-4 py-3 mt-2 rounded-lg bg-gray-900 text-white  outline-none transition"
               placeholder="Enter your email"
               {...formik.getFieldProps("email")}
             />
@@ -104,7 +104,7 @@ const Login = () => {
             </label>
             <input
               type="password"
-              className="w-full px-4 py-3 mt-2 rounded-lg bg-gray-900 text-white focus:ring-1 focus:ring-[#D4C0F9] outline-none transition"
+              className="w-full px-4 py-3 mt-2 rounded-lg bg-gray-900 text-white  outline-none transition"
               placeholder="Enter your password"
               {...formik.getFieldProps("password")}
             />

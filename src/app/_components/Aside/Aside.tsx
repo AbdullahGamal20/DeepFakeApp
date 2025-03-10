@@ -4,6 +4,7 @@ import Link from "next/link";
 import React from "react";
 import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
+import UserProfile from "../UserProfile/UserProfile";
 const Aside = () => {
   const router = useRouter();
   const handleLogout = () => {
@@ -14,8 +15,9 @@ const Aside = () => {
     <aside className="w-72 bg-[#121212] border-r-2 border-[#1E1E1E] py-6 flex flex-col items-center">
       <div className="text-center px-6">
         <UserCircle className="w-16 h-16 text-gray-400 mx-auto" />
-        <h2 className="text-lg font-semibold mt-2">John Doe</h2>
-        <p className="text-gray-400 text-sm">Deepfake Investigator</p>
+        <UserProfile />
+        {/* <h2 className="text-lg font-semibold mt-2">John Doe</h2>
+        <p className="text-gray-400 text-sm">Deepfake Investigator</p> */}
       </div>
       <div className="bg-gray-400 text-gray-100 mt-6 h-[2px] w-full" />
       <div className="text-gray-400 my-8 flex flex-col gap-4 px-6">

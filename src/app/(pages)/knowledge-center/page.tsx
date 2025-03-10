@@ -2,11 +2,11 @@ import React from "react";
 import Image from "next/image";
 import Aside from "@/app/_components/Aside/Aside";
 import Link from "next/link";
-import CaseOneImage from "../../assets/case_1.webp";
+import CaseOneImage from "../../assets/case_1_2.jpg";
 import CaseTwoImage from "../../assets/case_2.webp";
-import CaseThirdImage from "../../assets/case_3.webp";
-import CaseFourthImage from "../../assets/case_4.webp";
-import CaseFifthImage from "../../assets/case_5.webp";
+import CaseThirdImage from "../../assets/case_3_2.png";
+import CaseFourthImage from "../../assets/case_4_2.png";
+import CaseFifthImage from "../../assets/case_5_2.jpg";
 
 const page = () => {
   const cases = [

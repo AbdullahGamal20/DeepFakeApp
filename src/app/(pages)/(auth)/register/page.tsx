@@ -97,7 +97,7 @@ const page = () => {
             </label>
             <input
               type="text"
-              className="w-full px-4 py-3 mt-2 rounded-lg bg-gray-900 text-white focus:ring-1 focus:ring-[#D4C0F9] outline-none transition"
+              className="w-full px-4 py-3 mt-2 rounded-lg bg-gray-900 text-white outline-none transition"
               placeholder="Enter your username"
               {...formik.getFieldProps("username")}
             />
@@ -114,7 +114,7 @@ const page = () => {
             </label>
             <input
               type="email"
-              className="w-full px-4 py-3 mt-2 rounded-lg bg-gray-900 text-white focus:ring-1 focus:ring-[#D4C0F9] outline-none transition"
+              className="w-full px-4 py-3 mt-2 rounded-lg bg-gray-900 text-white outline-none transition"
               placeholder="Enter your email"
               {...formik.getFieldProps("email")}
             />
