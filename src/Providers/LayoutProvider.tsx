@@ -19,7 +19,10 @@ export function LayoutProvider({ children }: { children: React.ReactNode }) {
     pathname.startsWith("/register") ||
     pathname.startsWith("/upload") ||
     pathname.startsWith("/FAQ") ||
-    pathname.startsWith("/knowledge-center");
+    pathname.startsWith("/knowledge-center") ||
+    pathname.startsWith("/posts") ||
+    pathname.startsWith("/create-post") ||
+    pathname.startsWith("/profile");
 
   return (
     <LayoutContext.Provider value={{ hideLayout }}>

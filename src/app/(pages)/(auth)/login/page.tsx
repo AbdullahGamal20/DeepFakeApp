@@ -144,7 +144,7 @@ const Login = () => {
         {/* Divider */}
         <div className="mt-6 flex items-center justify-center">
           <span className="w-1/3 border-t border-gray-600"></span>
-          <p className="px-3 text-gray-400 text-sm">or continue with</p>
+          <p className="px-1 text-gray-400 text-sm">or continue with</p>
           <span className="w-1/3 border-t border-gray-600"></span>
         </div>
 

@@ -3,8 +3,7 @@ import { DM_Sans } from "next/font/google";
 
 import "./globals.css";
 import { ThemeProvider } from "@/Providers/theme-provider";
-import AppFooter from "./_components/Footer/Footer";
-import Navbar from "./_components/Navbar/Navbar";
+
 import { LayoutProvider } from "@/Providers/LayoutProvider";
 const font = DM_Sans({ subsets: ["latin"] });
 

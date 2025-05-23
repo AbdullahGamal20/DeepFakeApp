@@ -2,10 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { LogOut, Paperclip, Send, UserCircle } from "lucide-react";
-import Cookies from "js-cookie";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
+import { Paperclip, Send } from "lucide-react";
 import Aside from "@/app/_components/Aside/Aside";
 
 interface ChatMessage {
@@ -13,19 +10,24 @@ interface ChatMessage {
   media?: string;
   isVideo?: boolean;
   text?: string;
-  result?: any;
+  result?: any; // This will store the response from the backend (array or object)
 }
 
-const DetectPage = () => {
+export default function DetectPage() {
   const [mediaFile, setMediaFile] = useState<File | null>(null);
   const [mediaUrl, setMediaUrl] = useState("");
   const [isVideo, setIsVideo] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [loading, setLoading] = useState(false); // Loading state
+  const [loading, setLoading] = useState(false);
 
-  const router = useRouter();
-  const API_BASE_URL = "http://localhost:5000"; // Flask server
+  // We'll track advanced info toggles for each message-model pair
+  // Key is "msgIndex_modelIndex" -> boolean
+  const [showAdvanced, setShowAdvanced] = useState<Record<string, boolean>>({});
 
+  // Change this to match your Flask server URL
+  const API_BASE_URL = "http://localhost:5000";
+
+  // Utility to push user's message (image or video preview)
   const pushUserMessage = (mediaPath: string, isVideoType: boolean) => {
     setMessages((prev) => [
       ...prev,
@@ -37,6 +39,19 @@ const DetectPage = () => {
     ]);
   };
 
+  // Utility to push assistant message
+  const pushAssistantMessage = (data: any, isVideoType: boolean) => {
+    setMessages((prev) => [
+      ...prev,
+      {
+        role: "assistant",
+        isVideo: isVideoType,
+        result: data,
+      },
+    ]);
+  };
+
+  // Handle file uploads
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
@@ -51,25 +66,31 @@ const DetectPage = () => {
     }
   };
 
+  // Handle URL input
   const handleUrlChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setMediaUrl(event.target.value.trim());
     setMediaFile(null);
   };
 
+  // Analyze the media (file or URL)
   const handleAnalyze = async () => {
     let apiEndpoint = "";
     let requestOptions: RequestInit = {};
-    let isVideoType = isVideo;
+    let videoType = isVideo;
     let mediaToSend = "";
 
+    // If the user provided a URL
     if (mediaUrl) {
       const trimmedUrl = mediaUrl.trim();
       const baseUrl = trimmedUrl.split("?")[0];
-      isVideoType = /\.(mp4|mov|avi|mkv)$/i.test(baseUrl);
-      setIsVideo(isVideoType);
-      pushUserMessage(trimmedUrl, isVideoType);
+      videoType = /\.(mp4|mov|avi|mkv)$/i.test(baseUrl);
+      setIsVideo(videoType);
 
-      apiEndpoint = isVideoType
+      // Show user’s input in the chat
+      pushUserMessage(trimmedUrl, videoType);
+
+      // Choose the correct endpoint for videos vs images
+      apiEndpoint = videoType
         ? `${API_BASE_URL}/predict_video_url`
         : `${API_BASE_URL}/predict_url`;
 
@@ -101,7 +122,7 @@ const DetectPage = () => {
       return;
     }
 
-    setLoading(true); // Show loader
+    setLoading(true);
 
     try {
       const response = await fetch(apiEndpoint, requestOptions);
@@ -109,28 +130,34 @@ const DetectPage = () => {
 
       const data = await response.json();
 
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "assistant",
-          isVideo: isVideoType,
-          result: data,
-        },
-      ]);
+      // Add assistant response
+      pushAssistantMessage(data, videoType);
+
       setMediaUrl("");
     } catch (error) {
       console.error("Error analyzing media:", error);
       alert("Failed to analyze the file.");
     } finally {
-      setLoading(false); // Hide loader
+      setLoading(false);
     }
   };
 
-  const renderMessage = (msg: ChatMessage, index: number) => {
+  // Toggle advanced data for a specific message-model pair
+  const handleToggleAdvanced = (msgIndex: number, modelIndex: number) => {
+    const key = `${msgIndex}_${modelIndex}`;
+    setShowAdvanced((prev) => ({
+      ...prev,
+      [key]: !prev[key],
+    }));
+  };
+
+  // Render each message in the conversation
+  const renderMessage = (msg: ChatMessage, msgIndex: number) => {
+    // USER MESSAGE
     if (msg.role === "user") {
       return (
-        <div key={index} className="flex justify-end">
-          <div className="bg-[#121212] border-2 border-[#1E1E1E] p-2 mx-6  rounded-lg max-w-md mb-2">
+        <div key={msgIndex} className="flex justify-end">
+          <div className="bg-[#121212] border-2 border-[#1E1E1E] p-2 mx-6 rounded-lg max-w-md mb-2">
             {msg.media ? (
               <div className="relative w-32 h-32 rounded-lg overflow-hidden">
                 {msg.isVideo ? (
@@ -149,8 +176,8 @@ const DetectPage = () => {
                   <Image
                     src={msg.media}
                     alt="User upload"
-                    layout="fill"
-                    objectFit="cover"
+                    fill
+                    style={{ objectFit: "cover" }}
                   />
                 )}
               </div>
@@ -160,37 +187,168 @@ const DetectPage = () => {
           </div>
         </div>
       );
-    } else {
-      const { result, isVideo } = msg;
-      return (
-        <div key={index} className="flex justify-start">
-          <div className="bg-[#121212] border-2 border-[#1E1E1E] p-4 rounded-lg w-[75%] mx-6 mb-2">
-            {isVideo ? (
-              <>
-                <p className="text-white mb-1">
-                  Fake Percentage: {result.fake_percentage} %
-                </p>
-                <p className="text-white mb-1">
-                  Real Percentage: {result.real_percentage} %
-                </p>
-                <p className="text-white mb-1">
-                  Total Frames Analyzed: {result.total_frames_analyzed}
-                </p>
-              </>
-            ) : (
-              <>
-                <p className="text-white mb-1">
-                  Prediction: {result.prediction}
-                </p>
-                <p className="text-white mb-1">
-                  Confidence: {result?.confidence}
-                </p>
-              </>
-            )}
+    }
+
+    // ASSISTANT MESSAGE
+    const { result } = msg;
+    // Convert result to an array for consistent handling
+    const resultArray = Array.isArray(result) ? result : [result];
+
+    // Display each model's data side by side
+    return (
+      <div key={msgIndex} className="flex justify-start px-6 mb-4">
+        <div className="bg-[#121212] border-2 border-[#1E1E1E] p-4 rounded-lg w-full">
+          <div className="flex flex-col md:flex-row md:space-x-4">
+            {resultArray.map((modelData, modelIndex) => {
+              const key = `${msgIndex}_${modelIndex}`;
+              const isAdvancedVisible = showAdvanced[key] || false;
+
+              // Identify if this is the special 'Common' model
+              const isCommonModel = modelData.Model === "Common";
+
+              return (
+                <div
+                  key={modelIndex}
+                  className="border border-gray-600 rounded-md p-3 mb-4 md:mb-0 flex-1"
+                >
+                  {/* 
+                    If it's a video model and NOT the 'Common' model, 
+                    show main fake/real percentages.
+                  */}
+                  {msg.isVideo && !isCommonModel && (
+                    <>
+                      <p className="text-white mb-2">
+                        <strong>Fake Percentage:</strong>{" "}
+                        {modelData.fake_percentage !== undefined
+                          ? modelData.fake_percentage + "%"
+                          : "N/A"}
+                      </p>
+                      <p className="text-white mb-4">
+                        <strong>Real Percentage:</strong>{" "}
+                        {modelData.real_percentage !== undefined
+                          ? modelData.real_percentage + "%"
+                          : "N/A"}
+                      </p>
+                    </>
+                  )}
+
+                  {/* If it's an image model (not video), show prediction/confidence */}
+                  {!msg.isVideo && (
+                    <>
+                      <p className="text-white mb-2">
+                        <strong>Prediction:</strong> {modelData.prediction}
+                      </p>
+                      <p className="text-white mb-4">
+                        <strong>Confidence:</strong>{" "}
+                        {parseFloat(
+                          modelData.confidence.replace("%", "")
+                        ).toFixed(2)}
+                        %
+                      </p>
+                    </>
+                  )}
+
+                  {/* 
+                    Toggle for advanced data. 
+                    The 'Common' model won't show main data above, 
+                    but can show advanced data here.
+                  */}
+                  <button
+                    onClick={() => handleToggleAdvanced(msgIndex, modelIndex)}
+                    className="bg-blue-700 hover:bg-blue-800 text-white px-3 py-1 rounded-md"
+                  >
+                    {isAdvancedVisible ? "Hide Advanced" : "Show Advanced"}
+                  </button>
+
+                  {/* Advanced data display */}
+                  {isAdvancedVisible && (
+                    <div className="mt-4 space-y-2 border-t border-gray-500 pt-2">
+                      {msg.isVideo ? (
+                        // VIDEO advanced data (including 'Common' model)
+                        <>
+                          {!isCommonModel && (
+                            <p className="text-white">
+                              <strong>Model Name:</strong> {modelData.Model}
+                            </p>
+                          )}
+
+                          {modelData.total_frames_analyzed !== undefined && (
+                            <p className="text-white">
+                              <strong>Total Frames Analyzed:</strong>{" "}
+                              {modelData.total_frames_analyzed}
+                            </p>
+                          )}
+
+                          {/* For non-Common models, we might have fake_frames_zip */}
+                          {modelData.fake_frames_zip && !isCommonModel && (
+                            <p className="text-white">
+                              <strong>Fake Frames Zip:</strong>{" "}
+                              <a
+                                href={modelData.fake_frames_zip}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-blue-400 underline"
+                              >
+                                Download Fake Frames
+                              </a>
+                            </p>
+                          )}
+
+                          {/* For the Common model, show the link to download common fake frames */}
+                          {isCommonModel &&
+                            modelData.common_fake_frames_zip && (
+                              <p className="text-white">
+                                <strong>Download Common Fake Frames:</strong>{" "}
+                                <a
+                                  href={modelData.common_fake_frames_zip}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-blue-400 underline"
+                                >
+                                  Download
+                                </a>
+                              </p>
+                            )}
+
+                          {/* Possibly show any common fake frames count */}
+                          {modelData.common_fake_frames_count !== undefined && (
+                            <p className="text-white">
+                              <strong>Common Fake Frames Count:</strong>{" "}
+                              {modelData.common_fake_frames_count}
+                            </p>
+                          )}
+                        </>
+                      ) : (
+                        // IMAGE advanced data
+                        <>
+                          <p className="text-white">
+                            <strong>Model Name:</strong> {modelData.Model}
+                          </p>
+                          <p className="text-white">
+                            <strong>Grad-CAM URL:</strong>{" "}
+                            <button className="bg-blue-600 hover:bg-blue-700 text-white mx-2 px-2 py-1 rounded-md">
+                              Open GradCam
+                              <a
+                                href={modelData.gradcam_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-blue-400 underline"
+                              >
+                                {/* {modelData.gradcam_url} */}
+                              </a>
+                            </button>
+                          </p>
+                        </>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
-      );
-    }
+      </div>
+    );
   };
 
   return (
@@ -201,11 +359,13 @@ const DetectPage = () => {
           Detect Deepfakes
         </h1>
 
-        <div className="flex-1 overflow-y-auto mb-4 space-y-4 px-2">
+        {/* Chat display area */}
+        <div className="flex-1 overflow-y-auto mb-4 space-y-4">
           {messages.map((msg, index) => renderMessage(msg, index))}
           {loading && <p className="text-center text-white">Processing...</p>}
         </div>
 
+        {/* Input area */}
         <div className="w-full max-w-2xl mx-auto mb-4">
           <div className="flex items-center bg-[#121212] border-2 border-[#1E1E1E] rounded-full p-4">
             <label className="cursor-pointer px-3 text-gray-400">
@@ -236,6 +396,4 @@ const DetectPage = () => {
       </div>
     </div>
   );
-};
-
-export default DetectPage;
+}

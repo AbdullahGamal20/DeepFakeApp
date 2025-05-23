@@ -64,7 +64,7 @@ const FAQ = () => {
       <section className="flex-1  overflow-y-auto py-10 px-6 md:px-16">
         <div className="max-w-4xl w-full mx-auto">
           <h1 className="text-5xl text-center bg-clip-text text-transparent bg-gradient-to-b from-white to-neutral-600 font-sans font-bold mb-12">
-            Our Knowledge Center
+            Frequently Asked Questions
           </h1>
           <div className="grid grid-cols-1 gap-10">
             {faqs.map((faq, index) => (

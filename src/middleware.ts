@@ -16,5 +16,5 @@ export function middleware(req: NextRequest) {
 
 // Apply middleware only to the /upload page
 export const config = {
-  matcher: "/upload",
+  matcher: ["/upload", "/posts", "/knowledge-center", "/FAQ"],
 };
