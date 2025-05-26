@@ -9,6 +9,7 @@ import Cookies from "js-cookie";
 interface Post {
   _id: string;
   desc: string;
+  createdAt: Date;
 }
 
 interface Comment {
@@ -159,7 +160,17 @@ const Page = () => {
                     <h2 className="text-lg font-semibold text-white">
                       AnonymousUser
                     </h2>
-                    <p className="text-sm text-gray-400">Posted just now</p>
+                    <p className="text-sm text-gray-400">
+                      {" "}
+                      {new Date(post?.createdAt).toLocaleString("en-US", {
+                        day: "2-digit",
+                        month: "short", // or "long" for full month name
+                        year: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        hour12: true,
+                      })}
+                    </p>
                   </div>
                 </div>
 
